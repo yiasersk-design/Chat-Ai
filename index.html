@@ -415,7 +415,12 @@ window.confirmClearAllData = function() {
 window.addEventListener('DOMContentLoaded', () => {
     const data = getProfileData();
     const hasActive = data.apis.some(a => a.isActive);
-    if (hasActive) document.getElementById('profileDot').classList.remove('hidden');
+    const profileDot = document.getElementById('profileDot');
+    
+    // বাগ ফিক্স: এলিমেন্টটি (profileDot) HTML-এ থাকলে তবেই classList পরিবর্তন করবে
+    if (hasActive && profileDot) {
+        profileDot.classList.remove('hidden');
+    }
 });
 </script> <script> // ==========================================
 // NEW: Proper Preview Page History Tracking System
@@ -2288,9 +2293,9 @@ body {
 
     <button id="btnProfileNav" onclick="openProfilePage()" class="p-2 w-12 h-12 flex items-center justify-center text-[#9ca3af] hover:text-blue-600 transition-colors focus:outline-none relative" title="Account & API Settings">
         <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
-            <circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/>
+            <circle cx="12" cy="12" r="3"></circle>
+            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
         </svg>
-        <span id="profileDot" class="absolute top-2 right-2 w-2 h-2 bg-green-500 rounded-full hidden"></span>
     </button>
 </nav>
         </div>
@@ -11062,12 +11067,14 @@ function openSettings() {
         <button onclick="closeApiConfigPage()" class="w-8 h-8 flex items-center justify-center rounded-md text-gray-500 hover:text-gray-800 transition-colors focus:outline-none shrink-0">
             <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
         </button>
-        <div class="flex items-center justify-center flex-1 px-2 gap-2">
+        
+        <div class="flex items-center justify-start flex-1 px-3">
             <h1 class="text-[16px] font-bold text-gray-800 truncate">API Config</h1>
         </div>
+        
         <div class="flex items-center gap-2 shrink-0">
             <!-- Small Square Badge Moved Here -->
-            <div class="flex items-center justify-center w-8 h-8 rounded-md bg-blue-50 border border-blue-200 text-[14px] font-bold text-blue-600" id="apiConfigCountBadge">0</div>
+            <div class="flex items-center justify-center w-8 h-8 rounded-md bg-blue-50 border border-blue-200 text-[13px] font-bold text-blue-600" id="apiConfigCountBadge" title="Total APIs">0</div>
             
             <input type="file" id="importApiConfigInput" accept=".json" class="hidden" onchange="handleApiImport(event)">
             <button onclick="triggerApiImport()" class="flex items-center justify-center gap-1.5 px-2.5 h-8 rounded-md bg-indigo-50 border border-indigo-200 hover:bg-indigo-100 text-indigo-700 text-[12px] font-bold transition-colors focus:outline-none shadow-sm" title="Import JSON">
