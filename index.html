@@ -5836,7 +5836,10 @@ function exportPDF() {
             const scrollToBottomBtn = document.getElementById('scrollToBottomBtn');
             if (!scrollToBottomBtn) return;
             
-            if (chatContainer.scrollTop < chatContainer.scrollHeight - chatContainer.clientHeight - 100) {
+            const welcomeScreen = document.getElementById('welcomeScreen');
+            const isWelcomeScreenActive = welcomeScreen && !welcomeScreen.classList.contains('opacity-0');
+            
+            if (!isWelcomeScreenActive && chatContainer.scrollTop < chatContainer.scrollHeight - chatContainer.clientHeight - 100) {
                 scrollToBottomBtn.classList.remove('scale-0', 'opacity-0');
                 scrollToBottomBtn.classList.add('scale-100', 'opacity-100');
             } else {
