@@ -9012,67 +9012,71 @@ window.closeFullScreenSearch = function(e) {
         }
     })();
 
-    // ৭. FIX: welcomeScreen কে fixed করে chatContainer-এর সাথে align রাখা
-    // আপডেট: keyboard/focus এলেও welcome page স্ক্রল হবে না এবং স্থির থাকবে
+    // ৭. FIX: welcomeScreen কে fixed করে align রাখা (No Jump / Glitch on Load)
+    // আপডেট: শুধুমাত্র কীবোর্ড ওপেন হওয়ার ঠিক আগে (focus) এর পজিশন লক করা হবে।
     (function() {
-        var initialTop = 0;
-        var initialLeft = 0;
-        var initialWidth = 0;
-        var initialHeight = 0;
-        var isInitialized = false;
-        var lastWindowWidth = window.innerWidth;
+        var isLocked = false;
+        var initialTop = 0, initialLeft = 0, initialWidth = 0, initialHeight = 0;
 
         function lockWelcomeScreen() {
-            var chatContainer = document.getElementById('chatContainer');
             var welcomeScreen = document.getElementById('welcomeScreen');
-            if (!chatContainer || !welcomeScreen) return;
+            // যদি আগে থেকেই লক করা থাকে বা স্ক্রিন না থাকে, তবে রিটার্ন করবে
+            if (!welcomeScreen || isLocked) return;
 
-            var currentWindowWidth = window.innerWidth;
+            // Welcome Screen-এর বর্তমান ন্যাচারাল (আসল) পজিশনটি নেওয়া হচ্ছে
+            var rect = welcomeScreen.getBoundingClientRect();
             
-            // যদি ডিভাইসের চওড়া পরিবর্তন হয় (যেমন মোবাইল রোটেট করলে), তাহলে নতুন করে রি-ক্যালকুলেট করবে
-            if (isInitialized && Math.abs(currentWindowWidth - lastWindowWidth) > 10) {
-                isInitialized = false;
-                lastWindowWidth = currentWindowWidth;
-            }
+            if (rect.height > 100) {
+                initialTop = rect.top;
+                initialLeft = rect.left;
+                initialWidth = rect.width;
+                initialHeight = rect.height;
 
-            if (!isInitialized) {
-                var rect = chatContainer.getBoundingClientRect();
-                
-                // Height ঠিকমতো পাওয়া গেলে তবেই পজিশন লক করা হবে
-                if (rect.height > 100) {
-                    welcomeScreen.classList.remove('absolute', 'inset-0');
-                    welcomeScreen.classList.add('fixed');
-                    
-                    initialTop = rect.top;
-                    initialLeft = rect.left;
-                    initialWidth = rect.width;
-                    initialHeight = rect.height;
+                // Absolute ক্লাসগুলো রিমুভ করে Fixed ক্লাস যোগ করা হচ্ছে
+                welcomeScreen.classList.remove('absolute', 'inset-0', 'w-full', 'h-full');
+                welcomeScreen.classList.add('fixed');
 
-                    welcomeScreen.style.top = initialTop + 'px';
-                    welcomeScreen.style.left = initialLeft + 'px';
-                    welcomeScreen.style.width = initialWidth + 'px';
-                    welcomeScreen.style.height = initialHeight + 'px';
-
-                    isInitialized = true;
-                }
-            } else {
-                // একবার লক হয়ে গেলে কীবোর্ড ওপেন বা পেজ স্ক্রল হলেও এটি আগের পজিশনেই হার্ড-লক থাকবে
+                // ঠিক যেই পজিশনে ছিল, সেই পজিশনেই পিক্সেল ভ্যালু দিয়ে হার্ড-লক করা হচ্ছে
                 welcomeScreen.style.top = initialTop + 'px';
                 welcomeScreen.style.left = initialLeft + 'px';
                 welcomeScreen.style.width = initialWidth + 'px';
                 welcomeScreen.style.height = initialHeight + 'px';
+
+                isLocked = true;
             }
         }
 
-        // পেজ রেন্ডার হওয়ার সাথে সাথে কল করা
-        setTimeout(lockWelcomeScreen, 100);
-        setTimeout(lockWelcomeScreen, 500); // ফলব্যাক: ফন্ট বা স্টাইল লোড হতে দেরি হলে
+        function unlockWelcomeScreen() {
+            var welcomeScreen = document.getElementById('welcomeScreen');
+            if (!welcomeScreen || !isLocked) return;
 
-        // উইন্ডো রিসাইজ ইভেন্ট
-        window.addEventListener('resize', lockWelcomeScreen);
-        if (window.visualViewport) {
-            window.visualViewport.addEventListener('resize', lockWelcomeScreen);
+            welcomeScreen.classList.remove('fixed');
+            welcomeScreen.classList.add('absolute', 'inset-0', 'w-full', 'h-full');
+            
+            welcomeScreen.style.top = '';
+            welcomeScreen.style.left = '';
+            welcomeScreen.style.width = '';
+            welcomeScreen.style.height = '';
+
+            isLocked = false;
         }
+
+        // ইনপুট বক্সে ফোকাস করলেই (কীবোর্ড ওপেন হওয়ার আগে) পজিশন লক হবে
+        var chatInput = document.getElementById('chatInput');
+        if (chatInput) {
+            chatInput.addEventListener('focus', lockWelcomeScreen);
+            chatInput.addEventListener('blur', function() {
+                // কীবোর্ড বন্ধ হলে আবার আনলক করে দেওয়া হবে
+                setTimeout(unlockWelcomeScreen, 100);
+            });
+        }
+
+        // মোবাইল রোটেট করলে বা সাইজ পরিবর্তন হলে আনলক করে আবার লক করবে
+        window.addEventListener('resize', function() {
+            if (isLocked && document.activeElement !== chatInput) {
+                unlockWelcomeScreen();
+            }
+        });
 
         // pointer-events শুধু visible অবস্থায় চালু রাখা
         var welcomeScreenEl = document.getElementById('welcomeScreen');
@@ -9081,7 +9085,6 @@ window.closeFullScreenSearch = function(e) {
                 var isHidden = welcomeScreenEl.classList.contains('opacity-0') || 
                                welcomeScreenEl.style.display === 'none';
                 welcomeScreenEl.style.pointerEvents = isHidden ? 'none' : 'auto';
-                lockWelcomeScreen();
             });
             observer.observe(welcomeScreenEl, { attributes: true, attributeFilter: ['class', 'style'] });
             welcomeScreenEl.style.pointerEvents = 'auto';
