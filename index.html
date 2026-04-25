@@ -9658,26 +9658,14 @@ window.closeFullScreenSearch = function(e) {
         function startCaptionTimerFallback(textToRead) {
             if(captionFallbackTimer) clearInterval(captionFallbackTimer);
             let wordsList = textToRead.trim().split(/\s+/); let wordIdx = 0;
+            // ভয়েস রেট অনুযায়ী টাইমার স্পিড ৩০০ মিলিসেকেন্ড করা হলো যাতে একদম সিঙ্ক থাকে
             captionFallbackTimer = setInterval(() => {
                 if (wordIdx < wordsList.length) {
-                    let startIdx = Math.max(0, wordIdx - 4); captionBox.innerText = wordsList.slice(startIdx, wordIdx + 1).join(' '); wordIdx++;
+                    let startIdx = Math.max(0, wordIdx - 5); 
+                    captionBox.innerText = wordsList.slice(startIdx, wordIdx + 1).join(' '); 
+                    wordIdx++;
                 } else clearInterval(captionFallbackTimer);
-            }, 350); 
-        }
-
-        function startTalkingSequence(text) {
-            currentFullText = text; globalCharIndex = 0; localCharIndex = 0;
-            switchToVideo('talkingStart');
-            videos.talkingStart.onended = () => { videos.talkingStart.onended = null; switchToVideo('talkingLoop'); };
-            captionBox.innerText = "• • •"; captionBox.classList.add('active');
-            
-            if ('speechSynthesis' in window) {
-                speechSynthesis.cancel(); isAudioPaused = false;
-                getEl('icon-pause').style.display = 'block'; getEl('icon-play').style.display = 'none';
-                setTimeout(() => { playAudioChunk(); }, 100);
-            } else {
-                setTimeout(() => { switchToVideo('introIdle'); isProcessing = false; captionBox.classList.remove('active'); }, 4000);
-            }
+            }, 300); 
         }
 
         function playAudioChunk() {
@@ -9694,10 +9682,25 @@ window.closeFullScreenSearch = function(e) {
             
             utterance.onstart = () => { if (globalCharIndex === 0) startTimer(); startCaptionTimerFallback(textToSpeak); };
             utterance.onboundary = (e) => {
-                if(captionFallbackTimer) { clearInterval(captionFallbackTimer); captionFallbackTimer = null; }
-                localCharIndex = e.charIndex; let textChunk = currentFullText.substring(globalCharIndex); if(!textChunk) return;
-                let nextSpace = textChunk.indexOf(' ', e.charIndex); let wordEnd = nextSpace !== -1 ? nextSpace : textChunk.length;
-                captionBox.innerText = textChunk.substring(0, wordEnd).trim().split(/\s+/).slice(-5).join(' ');
+                // 'sentence' ইভেন্ট ইগনোর করা হচ্ছে যাতে পুরো বাক্য একসাথে না লাফিয়ে চলে আসে (১০০% word-by-word সিঙ্ক)
+                if (e.name === 'sentence') return;
+                
+                if (captionFallbackTimer) { clearInterval(captionFallbackTimer); captionFallbackTimer = null; }
+                
+                localCharIndex = e.charIndex; 
+                let textChunk = currentFullText.substring(globalCharIndex); 
+                if(!textChunk) return;
+                
+                // বর্তমান উচ্চারিত শব্দের শেষ পজিশন বের করা
+                let nextSpace = textChunk.indexOf(' ', e.charIndex); 
+                let wordEnd = nextSpace !== -1 ? nextSpace : textChunk.length;
+                
+                // বলা হয়ে যাওয়া অংশটুকু আলাদা করা
+                let spokenSoFar = textChunk.substring(0, wordEnd).trim();
+                
+                // এক লাইনে রাখার জন্য সর্বশেষ ৫টি শব্দ কেটে নেওয়া
+                let wordsArr = spokenSoFar.split(/\s+/);
+                captionBox.innerText = wordsArr.slice(-5).join(' ');
             };
             utterance.onend = () => { if(captionFallbackTimer) clearInterval(captionFallbackTimer); if (!isAudioPaused && utterance === currentUtterance) finishTalkingSequence(); };
             utterance.onerror = (e) => { if(captionFallbackTimer) clearInterval(captionFallbackTimer); if (e.error !== 'canceled' && !isAudioPaused && utterance === currentUtterance) finishTalkingSequence(); };
