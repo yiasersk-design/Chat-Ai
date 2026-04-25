@@ -947,16 +947,16 @@ let savedSessions = localStorage.getItem('metaAINotes_sessions');
 if (savedSessions) {
     chatSessions = JSON.parse(savedSessions);
 } else {
-    chatSessions = [
+    chatSessions =[
         {
             id: 1234567890,
             title: "Sample Note (AI)",
             chatHTML: `
                 <div class="flex justify-end w-full mt-2">
-                    <div class="bg-[#f4f4f5] text-gray-900 px-4 py-2.5 rounded-[16px] rounded-tr-[4px] text-[15px] font-normal leading-relaxed max-w-[85%] w-fit inline-block break-words shadow-sm">একটি স্যাম্পল নোট দেখাও</div>
+                    <div class="bg-[#f4f4f5] text-gray-900 px-4 py-2.5 rounded-[16px] rounded-tr-[4px] text-[15px] font-normal leading-relaxed max-w-[85%] w-fit max-w-full inline-block break-words whitespace-pre-wrap overflow-hidden shadow-sm">একটি স্যাম্পল নোট দেখাও</div>
                 </div>
                 <div class="flex flex-col gap-3 w-full mt-4">
-                    <div class="text-[15px] text-gray-900 font-normal leading-[1.4] pl-1 cursor-text">
+                    <div class="text-[15px] text-gray-900 font-normal leading-[1.4] pl-1 cursor-text max-w-full break-words whitespace-pre-wrap overflow-hidden">
                         অবশ্যই! এটি একটি ডেমো নোট। এখানে A4 পেজে Narrow Margin (20px) ব্যবহার করে কৃত্রিম বুদ্ধিমত্তা (AI) সম্পর্কিত একটি বিস্তারিত প্রশ্নোত্তর যোগ করা হয়েছে। আপনি বাঁদিকের প্রিভিউ আইকনে ক্লিক করে পেজটি দেখতে পারেন।
                     </div>
                 </div>
@@ -5005,7 +5005,7 @@ function exportPDF() {
                             </div>
                             ${labelBadhon}
                         </div>
-                        <div class="text-[14.5px] font-medium text-gray-800 leading-tight whitespace-pre-wrap break-words">${msg.text}</div>
+                        <div class="text-[14.5px] font-medium text-gray-800 leading-tight whitespace-pre-wrap break-words max-w-full overflow-hidden">${msg.text}</div>
                     </div>
                 `;
                 if (existingCard) {
@@ -5027,7 +5027,7 @@ function exportPDF() {
                             </div>
                             ${labelABadhon}
                         </div>
-                        <div class="text-[14.5px] font-normal text-gray-800 leading-tight whitespace-pre-wrap break-words">${msg.text}</div>
+                        <div class="text-[14.5px] font-normal text-gray-800 leading-tight whitespace-pre-wrap break-words max-w-full overflow-hidden">${msg.text}</div>
                     </div>
                 `;                
                 if (existingCard) {
@@ -5949,7 +5949,7 @@ function exportPDF() {
             contentContainer.className = 'flex flex-col items-end max-w-[85%]';
 
             const msgBubble = document.createElement('div'); 
-            msgBubble.className = 'user-msg-bubble select-none cursor-pointer bg-[#f4f4f5] border border-gray-100 shadow-sm text-gray-900 px-4 py-2.5 rounded-[8px] rounded-tr-[2px] text-[15px] font-normal leading-relaxed w-fit inline-block break-words whitespace-pre-wrap text-left transition-colors duration-200';
+            msgBubble.className = 'user-msg-bubble select-none cursor-pointer bg-[#f4f4f5] border border-gray-100 shadow-sm text-gray-900 px-4 py-2.5 rounded-[8px] rounded-tr-[2px] text-[15px] font-normal leading-relaxed w-fit max-w-full inline-block break-words whitespace-pre-wrap overflow-hidden text-left transition-colors duration-200';
             
             msgBubble.dataset.rawText = text;
             msgBubble.innerHTML = `<span>${formatChatText(text)}</span>`;
@@ -6017,7 +6017,7 @@ function exportPDF() {
                 <span class="text-[13px] font-bold text-gray-800 tracking-wide">Meta AI</span>
             `;
 
-            const textBlock = document.createElement('div'); textBlock.className = 'text-[15px] text-gray-900 font-normal leading-[1.4] pl-9 cursor-text'; 
+            const textBlock = document.createElement('div'); textBlock.className = 'text-[15px] text-gray-900 font-normal leading-[1.4] pl-9 cursor-text max-w-full break-words whitespace-pre-wrap overflow-hidden'; 
             textBlock.textContent = ''; 
             
             const timeString = new Date().toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
@@ -9018,6 +9018,8 @@ window.closeFullScreenSearch = function(e) {
         var initialTop = 0;
         var initialHeight = 0;
         var isInitialized = false;
+        // ব্রাউজার লোড হওয়ার সময় অরিজিনাল হাইট ধরে রাখা
+        var initialViewportHeight = window.innerHeight || document.documentElement.clientHeight;
 
         function lockWelcomeScreen() {
             var chatContainer = document.getElementById('chatContainer');
@@ -9031,18 +9033,21 @@ window.closeFullScreenSearch = function(e) {
             }
 
             var rect = chatContainer.getBoundingClientRect();
+            var currentViewportHeight = window.innerHeight || document.documentElement.clientHeight;
 
-            // কীবোর্ড ওপেন আছে কিনা তা চেক করা (কীবোর্ড ওপেন হলে হাইট অনেক কমে যায়)
-            var isKeyboardOpen = false;
-            if (window.visualViewport && window.visualViewport.height < window.screen.height - 150) {
-                isKeyboardOpen = true;
-            }
+            // কীবোর্ড ওপেন চেক: বর্তমান হাইট যদি অরিজিনাল হাইট থেকে ১০০px এর বেশি কমে যায়
+            var isKeyboardOpen = currentViewportHeight < (initialViewportHeight - 100);
 
             welcomeScreen.style.left  = rect.left + 'px';
             welcomeScreen.style.width = rect.width + 'px';
 
             // কীবোর্ড বন্ধ থাকলে অরিজিনাল পজিশন ও হাইট সেভ করা হচ্ছে
             if (!isKeyboardOpen || !isInitialized) {
+                // অরিয়েন্টেশন চেঞ্জ হলে (Landscape/Portrait) initialViewportHeight আপডেট করা
+                if (!isKeyboardOpen && isInitialized && Math.abs(currentViewportHeight - initialViewportHeight) > 100) {
+                    initialViewportHeight = currentViewportHeight;
+                }
+
                 initialTop = rect.top;
                 initialHeight = rect.height;
                 welcomeScreen.style.top    = initialTop + 'px';
@@ -9066,16 +9071,16 @@ window.closeFullScreenSearch = function(e) {
         }
 
         // pointer-events শুধু visible অবস্থায় চালু রাখা
-        var welcomeScreen = document.getElementById('welcomeScreen');
-        if (welcomeScreen) {
+        var welcomeScreenEl = document.getElementById('welcomeScreen');
+        if (welcomeScreenEl) {
             var observer = new MutationObserver(function() {
-                var isHidden = welcomeScreen.classList.contains('opacity-0') || 
-                               welcomeScreen.style.display === 'none';
-                welcomeScreen.style.pointerEvents = isHidden ? 'none' : 'auto';
+                var isHidden = welcomeScreenEl.classList.contains('opacity-0') || 
+                               welcomeScreenEl.style.display === 'none';
+                welcomeScreenEl.style.pointerEvents = isHidden ? 'none' : 'auto';
                 lockWelcomeScreen();
             });
-            observer.observe(welcomeScreen, { attributes: true, attributeFilter: ['class', 'style'] });
-            welcomeScreen.style.pointerEvents = 'auto';
+            observer.observe(welcomeScreenEl, { attributes: true, attributeFilter: ['class', 'style'] });
+            welcomeScreenEl.style.pointerEvents = 'auto';
         }
     })();
 </script>     <div id="jevisAvatarOverlay" class="absolute inset-0 z-[100] hidden bg-white overflow-hidden text-left slide-up">
@@ -9395,7 +9400,7 @@ window.closeFullScreenSearch = function(e) {
                 contentContainer.className = 'flex flex-col items-end max-w-[85%]';
 
                 const msgBubble = document.createElement('div'); 
-                msgBubble.className = 'user-msg-bubble select-none cursor-pointer bg-[#f4f4f5] border border-gray-100 shadow-sm text-gray-900 px-4 py-2.5 rounded-[8px] rounded-tr-[2px] text-[15px] font-normal leading-relaxed w-fit inline-block break-words whitespace-pre-wrap text-left transition-colors duration-200';
+                msgBubble.className = 'user-msg-bubble select-none cursor-pointer bg-[#f4f4f5] border border-gray-100 shadow-sm text-gray-900 px-4 py-2.5 rounded-[8px] rounded-tr-[2px] text-[15px] font-normal leading-relaxed w-fit max-w-full inline-block break-words whitespace-pre-wrap overflow-hidden text-left transition-colors duration-200';
                 
                 msgBubble.dataset.rawText = text;
                 msgBubble.innerHTML = typeof formatChatText === 'function' ? `<span>${formatChatText(text)}</span>` : `<span>${text.replace(/\n/g, '<br>')}</span>`;
@@ -9418,7 +9423,7 @@ window.closeFullScreenSearch = function(e) {
                 aiWrapper.className = 'flex flex-col gap-1.5 w-full mt-4 fade-in';
                 
                 const textBlock = document.createElement('div'); 
-                textBlock.className = 'text-[15px] text-gray-900 font-normal leading-[1.4] pl-9 cursor-text'; 
+                textBlock.className = 'text-[15px] text-gray-900 font-normal leading-[1.4] pl-9 cursor-text max-w-full break-words whitespace-pre-wrap overflow-hidden'; 
                 textBlock.dataset.rawText = text;
                 textBlock.innerHTML = typeof formatChatText === 'function' ? formatChatText(text) : text.replace(/\n/g, '<br>');
                 
