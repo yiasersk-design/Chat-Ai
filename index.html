@@ -1973,13 +1973,14 @@ body {
         }
         #jevisAvatarOverlay #avatar-container video.active { opacity: 1; visibility: visible; z-index: 2; }
 
-        /* Updated Caption Container: Clean, Black Text, Bottom Position */
+        /* Updated Caption Container: Clean, Black Text, Bottom Position, Single Line Forced */
         #jevisAvatarOverlay .caption-container {
             position: absolute; bottom: 140px; left: 0; right: 0; margin: 0 auto;
             width: 90%; max-width: 400px; background: transparent; color: #000000;
             border: none; text-shadow: none;
             font-family: 'FutureFont', sans-serif; padding: 10px 15px; text-align: center !important;
             font-size: 18px; font-weight: 600; letter-spacing: 0.5px; line-height: 1.4;
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
             opacity: 0; transform: translateY(10px); transition: all 0.3s ease;
             z-index: 60; pointer-events: none;
         }
