@@ -5952,7 +5952,7 @@ function exportPDF() {
             msgBubble.className = 'user-msg-bubble select-none cursor-pointer bg-[#f4f4f5] border border-gray-100 shadow-sm text-gray-900 px-4 py-2.5 rounded-[8px] rounded-tr-[2px] text-[15px] font-normal leading-relaxed w-fit max-w-full inline-block break-words whitespace-pre-wrap overflow-hidden text-left transition-colors duration-200';
             
             msgBubble.dataset.rawText = text;
-            msgBubble.innerHTML = `<span>${formatChatText(text)}</span>`;
+            msgBubble.innerHTML = typeof formatChatText === 'function' ? `<span>${formatChatText(text)}</span>` : `<span>${text.replace(/\n/g, '<br>')}</span>`;
 
             const timeString = new Date().toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
             
@@ -5960,7 +5960,6 @@ function exportPDF() {
             timeLabel.className = 'text-[10px] text-gray-400 flex items-center gap-1 font-medium tracking-wide mt-1 mr-1';
             timeLabel.innerHTML = `
                 ${timeString}
-                <svg class="w-3.5 h-3.5 text-blue-500" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"></path></svg>
             `;
 
             let pressTimer;
@@ -6401,7 +6400,7 @@ function exportPDF() {
             
             const typingIndicator = document.createElement('div');
             typingIndicator.id = 'typingIndicator';
-            typingIndicator.className = 'flex items-center gap-1.5 bg-[#f4f4f5] px-4 py-3.5 rounded-[1.25rem] w-max fade-in mt-4 ml-1';
+            typingIndicator.className = 'flex items-center gap-1.5 bg-transparent px-4 py-3.5 rounded-[1.25rem] w-max fade-in mt-4 ml-1';
             typingIndicator.innerHTML = `
                 <div class="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
                 <div class="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style="animation-delay: 0.15s"></div>
