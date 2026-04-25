@@ -9012,69 +9012,50 @@ window.closeFullScreenSearch = function(e) {
         }
     })();
 
-    // ৭. FIX: welcomeScreen কে fixed করে align রাখা (No Jump / Glitch on Load)
-    // আপডেট: শুধুমাত্র কীবোর্ড ওপেন হওয়ার ঠিক আগে (focus) এর পজিশন লক করা হবে।
+    // ৭. FIX: welcomeScreen 100% Fixed without Jump/Glitch
+    // আপডেট: পেজ লোড হলেই হাইট পিক্সেল ভ্যালুতে ফ্রিজ হয়ে যাবে।
     (function() {
-        var isLocked = false;
-        var initialTop = 0, initialLeft = 0, initialWidth = 0, initialHeight = 0;
+        var isHeightFrozen = false;
+        var lastWidth = window.innerWidth;
 
-        function lockWelcomeScreen() {
+        function freezeWelcomeHeight() {
             var welcomeScreen = document.getElementById('welcomeScreen');
-            // যদি আগে থেকেই লক করা থাকে বা স্ক্রিন না থাকে, তবে রিটার্ন করবে
-            if (!welcomeScreen || isLocked) return;
+            var chatContainer = document.getElementById('chatContainer');
+            if (!welcomeScreen || !chatContainer) return;
 
-            // Welcome Screen-এর বর্তমান ন্যাচারাল (আসল) পজিশনটি নেওয়া হচ্ছে
-            var rect = welcomeScreen.getBoundingClientRect();
+            // কন্টেনারের অরিজিনাল হাইট বের করা
+            var rect = chatContainer.getBoundingClientRect();
             
-            if (rect.height > 100) {
-                initialTop = rect.top;
-                initialLeft = rect.left;
-                initialWidth = rect.width;
-                initialHeight = rect.height;
-
-                // Absolute ক্লাসগুলো রিমুভ করে Fixed ক্লাস যোগ করা হচ্ছে
-                welcomeScreen.classList.remove('absolute', 'inset-0', 'w-full', 'h-full');
-                welcomeScreen.classList.add('fixed');
-
-                // ঠিক যেই পজিশনে ছিল, সেই পজিশনেই পিক্সেল ভ্যালু দিয়ে হার্ড-লক করা হচ্ছে
-                welcomeScreen.style.top = initialTop + 'px';
-                welcomeScreen.style.left = initialLeft + 'px';
-                welcomeScreen.style.width = initialWidth + 'px';
-                welcomeScreen.style.height = initialHeight + 'px';
-
-                isLocked = true;
+            // যদি হাইট ঠিকমতো পাওয়া যায় এবং আগে থেকে ফ্রিজ করা না থাকে
+            if (rect.height > 100 && !isHeightFrozen) {
+                // হাইটকে ফিক্সড পিক্সেলে সেট করা হলো, ফলে কীবোর্ড খুললেও বক্স ছোট হবে না
+                welcomeScreen.style.height = rect.height + 'px';
+                welcomeScreen.style.position = 'absolute';
+                welcomeScreen.style.top = '0';
+                welcomeScreen.style.left = '0';
+                welcomeScreen.style.right = '0';
+                isHeightFrozen = true;
             }
         }
 
-        function unlockWelcomeScreen() {
-            var welcomeScreen = document.getElementById('welcomeScreen');
-            if (!welcomeScreen || !isLocked) return;
+        // পেজ লোড হওয়ার পর ফ্রিজ করা
+        window.addEventListener('DOMContentLoaded', function() {
+            setTimeout(freezeWelcomeHeight, 100);
+            setTimeout(freezeWelcomeHeight, 500); // ফলব্যাক
+        });
 
-            welcomeScreen.classList.remove('fixed');
-            welcomeScreen.classList.add('absolute', 'inset-0', 'w-full', 'h-full');
-            
-            welcomeScreen.style.top = '';
-            welcomeScreen.style.left = '';
-            welcomeScreen.style.width = '';
-            welcomeScreen.style.height = '';
-
-            isLocked = false;
-        }
-
-        // ইনপুট বক্সে ফোকাস করলেই (কীবোর্ড ওপেন হওয়ার আগে) পজিশন লক হবে
-        var chatInput = document.getElementById('chatInput');
-        if (chatInput) {
-            chatInput.addEventListener('focus', lockWelcomeScreen);
-            chatInput.addEventListener('blur', function() {
-                // কীবোর্ড বন্ধ হলে আবার আনলক করে দেওয়া হবে
-                setTimeout(unlockWelcomeScreen, 100);
-            });
-        }
-
-        // মোবাইল রোটেট করলে বা সাইজ পরিবর্তন হলে আনলক করে আবার লক করবে
+        // মোবাইল রোটেট (Landscape/Portrait) করলে আবার নতুন করে ক্যালকুলেট করবে
         window.addEventListener('resize', function() {
-            if (isLocked && document.activeElement !== chatInput) {
-                unlockWelcomeScreen();
+            var currentWidth = window.innerWidth;
+            if (Math.abs(currentWidth - lastWidth) > 50) {
+                lastWidth = currentWidth;
+                isHeightFrozen = false;
+                
+                var welcomeScreen = document.getElementById('welcomeScreen');
+                if (welcomeScreen) {
+                    welcomeScreen.style.height = '100%'; // সাময়িকভাবে রিসেট
+                    setTimeout(freezeWelcomeHeight, 100);
+                }
             }
         });
 
